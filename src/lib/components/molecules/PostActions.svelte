@@ -1,5 +1,4 @@
 <!-- src/lib/components/molecules/PostActions.svelte -->
-
 <script lang="ts">
 	let {
 		likes = 0,
@@ -8,56 +7,52 @@
 		onLike = (liked: boolean) => {},
 		onComment = () => {},
 		onRepost = (reposted: boolean) => {},
-		onDelete = null as null | (() => void), // Only provided if the user owns the post
-		onEdit = null as null | (() => void) // Only provided if the user owns the post
+		onDelete = null as null | (() => void),
+		onEdit = null as null | (() => void)
 	} = $props();
 
-	// State declarations using $state
 	let liked = $state(false);
 	let reposted = $state(false);
 
-	function handleLike(event: MouseEvent) {
+	function handleLike() {
 		liked = !liked;
-		onLike(liked); // Call with the liked state
+		onLike(liked);
 	}
 
-	function handleRepost(event: MouseEvent) {
+	function handleRepost() {
 		reposted = !reposted;
-		onRepost(reposted); // Call with the reposted state
+		onRepost(reposted);
 	}
 </script>
 
-<div class="post-actions">
-	<!-- Comment Button -->
-	<button class="action-button" onclick={() => onComment()} title="Comment">
+<div class="actions-container">
+	<button
+		onclick={() => onComment()}
+		class="action-button"
+		aria-label="Comment ({comments} comments)"
+	>
 		<svg
+			class="icon"
 			xmlns="http://www.w3.org/2000/svg"
-			width="18"
-			height="18"
-			viewBox="0 0 24 24"
 			fill="none"
+			viewBox="0 0 24 24"
 			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
 		>
 			<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
 		</svg>
 		<span>{comments}</span>
 	</button>
-
-	<!-- Like Button -->
-	<button class="action-button {liked ? 'liked' : ''}" onclick={handleLike} title="Like">
+	<button
+		onclick={handleLike}
+		class="action-button {liked ? 'active' : ''}"
+		aria-label="Like ({likes} likes)"
+	>
 		<svg
+			class="icon"
 			xmlns="http://www.w3.org/2000/svg"
-			width="18"
-			height="18"
-			viewBox="0 0 24 24"
 			fill="none"
+			viewBox="0 0 24 24"
 			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
 		>
 			<path
 				d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
@@ -65,19 +60,17 @@
 		</svg>
 		<span>{likes}</span>
 	</button>
-
-	<!-- Repost Button -->
-	<button class="action-button {reposted ? 'reposted' : ''}" onclick={handleRepost} title="Repost">
+	<button
+		onclick={handleRepost}
+		class="action-button {reposted ? 'active' : ''}"
+		aria-label="Repost ({reposts} reposts)"
+	>
 		<svg
+			class="icon"
 			xmlns="http://www.w3.org/2000/svg"
-			width="18"
-			height="18"
-			viewBox="0 0 24 24"
 			fill="none"
+			viewBox="0 0 24 24"
 			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
 		>
 			<path d="M17 1l4 4-4 4" />
 			<path d="M3 11v-1a4 4 0 0 1 4-4h14" />
@@ -86,40 +79,28 @@
 		</svg>
 		<span>{reposts}</span>
 	</button>
-
-	<!-- Edit Button (if user owns the post) -->
 	{#if onEdit}
-		<button class="action-button edit" onclick={() => onEdit?.()} title="Edit">
+		<button onclick={() => onEdit?.()} class="action-button" aria-label="Edit post">
 			<svg
+				class="icon"
 				xmlns="http://www.w3.org/2000/svg"
-				width="18"
-				height="18"
-				viewBox="0 0 24 24"
 				fill="none"
+				viewBox="0 0 24 24"
 				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
 			>
 				<path d="M12 20h9" />
 				<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
 			</svg>
 		</button>
 	{/if}
-
-	<!-- Delete Button (if user owns the post) -->
 	{#if onDelete}
-		<button class="action-button delete" onclick={() => onDelete?.()} title="Delete">
+		<button onclick={() => onDelete?.()} class="action-button" aria-label="Delete post">
 			<svg
+				class="icon"
 				xmlns="http://www.w3.org/2000/svg"
-				width="18"
-				height="18"
-				viewBox="0 0 24 24"
 				fill="none"
+				viewBox="0 0 24 24"
 				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
 			>
 				<path d="M3 6h18" />
 				<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -130,3 +111,37 @@
 		</button>
 	{/if}
 </div>
+
+<style>
+	.actions-container {
+		display: flex;
+		gap: 1.5rem; /* Matches gap-6 */
+		padding-top: 0.5rem; /* Matches pt-2 */
+		border-top: 1px solid rgba(168, 213, 186, 0.5); /* Pastel green with 50% opacity */
+	}
+
+	.action-button {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem; /* Matches gap-1 */
+		color: #333333; /* Soft black */
+		background: none;
+		border: none;
+		cursor: pointer;
+		transition: color 0.2s;
+		font-size: 0.875rem;
+	}
+
+	.action-button:hover {
+		color: #a8d5ba; /* Pastel green on hover */
+	}
+
+	.action-button.active {
+		color: #a8d5ba; /* Pastel green when liked/reposted */
+	}
+
+	.icon {
+		width: 1.25rem; /* Matches w-5 */
+		height: 1.25rem; /* Matches h-5 */
+	}
+</style>

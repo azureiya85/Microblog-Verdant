@@ -1,9 +1,6 @@
 <!-- src/lib/components/atoms/CharacterCounter.svelte -->
-<script>
-	// Use $props instead of export let
+<script lang="ts">
 	let { current = 0, max = 350 } = $props();
-
-	// Use $derived properly with the assignment syntax
 	let remainingChars = $derived(max - current);
 	let isNearLimit = $derived(remainingChars <= 20);
 	let isAtLimit = $derived(remainingChars <= 0);
@@ -16,15 +13,15 @@
 <style>
 	.counter {
 		font-size: 0.8rem;
-		color: var(--dark-gray);
+		color: #6b7280; /* Dark gray from sign-in page */
 		text-align: right;
 	}
 
 	.near-limit {
-		color: orange;
+		color: #f59e0b; /* Orange shade */
 	}
 
 	.at-limit {
-		color: var(--error-color);
+		color: #ef4444; /* Error red from sign-in page */
 	}
 </style>

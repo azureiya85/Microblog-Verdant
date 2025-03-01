@@ -1,55 +1,58 @@
+<!-- src/lib/components/molecules/PostHeader.svelte -->
 <script lang="ts">
 	import Avatar from '../atoms/Avatar.svelte';
 	import { formatTimestamp } from '../../data/posts.ts';
 
-	// Use $props() instead of export let
 	let { author = { name: '', username: '', avatar: '' }, timestamp = new Date() } = $props();
 </script>
 
-<div class="post-header">
-	<div class="avatar-container">
-		<Avatar src={author.avatar} alt={author.name} />
-	</div>
-	<div class="user-info">
-		<div class="name-time">
+<div class="header-container">
+	<div class="user-container">
+		<Avatar src={author.avatar} alt={author.name} size="md" className="header-avatar" />
+		<div class="user-details">
 			<span class="name">{author.name}</span>
-			<span class="time">{formatTimestamp(timestamp)}</span>
+			<div class="username">@{author.username}</div>
 		</div>
-		<span class="username">@{author.username}</span>
 	</div>
+	<span class="timestamp">{formatTimestamp(timestamp)}</span>
 </div>
 
 <style>
-	.post-header {
+	.header-container {
 		display: flex;
+		justify-content: space-between;
 		align-items: flex-start;
-		gap: 10px;
-		margin-bottom: 8px;
+		margin-bottom: 0.5rem;
 	}
 
-	.user-info {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.name-time {
+	.user-container {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: 0.75rem; /* Matches gap-3 */
+	}
+
+	.header-avatar {
+		border: 2px solid #a8d5ba; /* Pastel green border */
+	}
+
+	.user-details {
+		display: flex;
+		flex-direction: column;
 	}
 
 	.name {
 		font-weight: 700;
 		font-size: 1rem;
+		color: #333333; /* Soft black */
 	}
 
 	.username {
-		color: var(--dark-gray);
-		font-size: 0.9rem;
+		color: #6b7280; /* Gray from sign-in page */
+		font-size: 0.875rem;
 	}
 
-	.time {
-		color: var(--dark-gray);
-		font-size: 0.85rem;
+	.timestamp {
+		color: #6b7280; /* Gray */
+		font-size: 0.875rem;
 	}
 </style>

@@ -1,21 +1,24 @@
 <!-- src/lib/components/atoms/Input.svelte -->
 <script lang="ts">
-	// Use $props instead of export let
 	let {
 		type = 'text',
 		placeholder = '',
-		maxLength = undefined,
+		maxLength = undefined as number | undefined,
 		error = '',
-		rows = 3 // Only used for textarea
+		rows = 3,
+		value = $bindable(''),
+		className = ''
 	} = $props();
-
-	// Handle value as state separately
-	let value = $state('');
 </script>
 
 {#if type === 'textarea'}
 	<div class="input-wrapper">
-		<textarea {placeholder} bind:value maxlength={maxLength} {rows} class={error ? 'has-error' : ''}
+		<textarea
+			{placeholder}
+			bind:value
+			maxlength={maxLength}
+			{rows}
+			class="input {className} {error ? 'has-error' : ''}"
 		></textarea>
 		{#if error}
 			<p class="error">{error}</p>
@@ -23,7 +26,13 @@
 	</div>
 {:else}
 	<div class="input-wrapper">
-		<input {type} {placeholder} bind:value maxlength={maxLength} class={error ? 'has-error' : ''} />
+		<input
+			{type}
+			{placeholder}
+			bind:value
+			maxlength={maxLength}
+			class="input {className} {error ? 'has-error' : ''}"
+		/>
 		{#if error}
 			<p class="error">{error}</p>
 		{/if}
@@ -33,32 +42,38 @@
 <style>
 	.input-wrapper {
 		width: 100%;
-		margin-bottom: 8px;
+		margin-bottom: 0.5rem; /* Matches sign-in page spacing */
 	}
 
-	input,
-	textarea {
+	.input {
 		width: 100%;
-		padding: 10px;
-		border: 1px solid var(--light-gray);
-		border-radius: var(--border-radius);
+		padding: 0.75rem 1rem; /* Matches sign-in page */
+		border: 1px solid #d1d5db; /* Light gray from sign-in page */
+		border-radius: 0.375rem;
 		font-size: 1rem;
 		resize: none;
+		transition:
+			border-color 0.2s,
+			box-shadow 0.2s;
 	}
 
-	input:focus,
-	textarea:focus {
-		border-color: var(--primary-color);
+	.input:focus {
 		outline: none;
+		border-color: #a8d5ba; /* Pastel green */
+		box-shadow: 0 0 0 3px rgba(168, 213, 186, 0.2); /* Pastel green shadow */
 	}
 
 	.has-error {
-		border-color: var(--error-color);
+		border-color: #ef4444; /* Error red from sign-in page */
+	}
+
+	.has-error:focus {
+		box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); /* Error red shadow */
 	}
 
 	.error {
-		color: var(--error-color);
-		font-size: 0.85rem;
-		margin-top: 4px;
+		color: #ef4444; /* Error red */
+		font-size: 0.875rem;
+		margin-top: 0.5rem;
 	}
 </style>
