@@ -18,7 +18,6 @@
 	.avatar {
 		border-radius: 9999px; /* Fully rounded */
 		overflow: hidden;
-		/* Remove hardcoded border here to allow className to control it */
 	}
 
 	.avatar-img {

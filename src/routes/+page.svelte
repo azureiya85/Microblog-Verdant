@@ -1,59 +1,64 @@
-<script>
-	import { createEventDispatcher } from 'svelte';
+<!-- src/routes/+page.svelte -->
+<script lang="ts">
+	import { login, register } from '$lib/stores/auth.svelte.ts';
+	import { goto } from '$app/navigation';
 
-	// Using $state for reactive local state
-	let name = $state('');
-	let email = $state('');
-	let password = $state('');
-	let confirmPassword = $state('');
-	let errors = $state({
-		name: '',
+	// State variables with explicit types
+	let isLoginMode = $state<boolean>(false); // Toggle between login and register
+	let username = $state<string>(''); // Changed from 'name' to match Backendless
+	let email = $state<string>(''); // Explicitly typed
+	let password = $state<string>(''); // Explicitly typed
+	let confirmPassword = $state<string>(''); // Explicitly typed
+	let errors = $state<{
+		username: string;
+		email: string;
+		password: string;
+		confirmPassword: string;
+	}>({
+		username: '',
 		email: '',
 		password: '',
 		confirmPassword: ''
 	});
-	let isSubmitting = $state(false);
+	let isSubmitting = $state<boolean>(false);
 
-	// Using $derived for computed values
-	let nameValid = $derived(name.length >= 6);
+	// Derived values with explicit types
+	let usernameValid = $derived(username.length >= 6);
 	let emailValid = $derived(isValidEmail(email));
 	let passwordValid = $derived(isValidPassword(password));
 	let confirmPasswordValid = $derived(password === confirmPassword && confirmPassword !== '');
-	let formValid = $derived(nameValid && emailValid && passwordValid && confirmPasswordValid);
+	let formValid = $derived(
+		isLoginMode
+			? usernameValid && passwordValid // Login only needs username and password
+			: usernameValid && emailValid && passwordValid && confirmPasswordValid // Register needs all
+	);
 
-	// Event dispatcher for form submission
-	const dispatch = createEventDispatcher();
-
-	// Email validation function
-	function isValidEmail(email) {
+	// Validation functions
+	function isValidEmail(email: string): boolean {
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		return email.trim() !== '' && emailRegex.test(email);
 	}
 
-	// Password validation function
-	function isValidPassword(password) {
-		// Check for min 6 chars, lowercase, uppercase, number, and symbol
+	function isValidPassword(password: string): boolean {
 		const hasLowercase = /[a-z]/.test(password);
 		const hasUppercase = /[A-Z]/.test(password);
 		const hasNumber = /[0-9]/.test(password);
 		const hasSymbol = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
-
 		return password.length >= 6 && hasLowercase && hasUppercase && hasNumber && hasSymbol;
 	}
 
-	// Validate form fields and show errors
-	function validateField(field) {
+	// Validate fields with explicit field type
+	function validateField(field: 'username' | 'email' | 'password' | 'confirmPassword'): void {
 		switch (field) {
-			case 'name':
-				if (name.trim() === '') {
-					errors.name = 'Name cannot be empty';
-				} else if (name.length < 6) {
-					errors.name = 'Name must be at least 6 characters';
+			case 'username':
+				if (username.trim() === '') {
+					errors.username = 'Username cannot be empty';
+				} else if (username.length < 6) {
+					errors.username = 'Username must be at least 6 characters';
 				} else {
-					errors.name = '';
+					errors.username = '';
 				}
 				break;
-
 			case 'email':
 				if (email.trim() === '') {
 					errors.email = 'Email cannot be empty';
@@ -63,7 +68,6 @@
 					errors.email = '';
 				}
 				break;
-
 			case 'password':
 				if (password.trim() === '') {
 					errors.password = 'Password cannot be empty';
@@ -81,7 +85,6 @@
 					errors.password = '';
 				}
 				break;
-
 			case 'confirmPassword':
 				if (confirmPassword.trim() === '') {
 					errors.confirmPassword = 'Please confirm your password';
@@ -95,39 +98,48 @@
 	}
 
 	// Handle form submission
-	function handleSubmit() {
-		// Validate all fields
-		validateField('name');
-		validateField('email');
+	async function handleSubmit() {
+		validateField('username');
+		if (!isLoginMode) validateField('email');
 		validateField('password');
-		validateField('confirmPassword');
+		if (!isLoginMode) validateField('confirmPassword');
 
-		// Check if form is valid
 		if (formValid) {
 			isSubmitting = true;
-
-			// In a real app, you would send this data to your backend
-			dispatch('signup', {
-				name,
-				email,
-				password
-			});
-
-			// Simulating async operation
-			setTimeout(() => {
+			try {
+				if (isLoginMode) {
+					const success = await login(username, password);
+					if (success) {
+						goto('/timeline'); // Redirect to timeline on successful login
+					} else {
+						errors.password = 'Invalid username or password';
+					}
+				} else {
+					await register(username, email, password);
+					goto('/timeline'); // Redirect to timeline on successful registration
+				}
+			} catch (error) {
+				const err = error as Error;
+				errors[isLoginMode ? 'password' : 'email'] = err.message || 'An error occurred';
+			} finally {
 				isSubmitting = false;
-			}, 1000);
+			}
 		}
 	}
 
-	// Function to handle admin access
-	function adminAccess() {
-		window.location.href = '/timeline';
+	// Toggle between login and register modes
+	function toggleMode() {
+		isLoginMode = !isLoginMode;
+		// Reset form fields and errors when switching
+		username = '';
+		email = '';
+		password = '';
+		confirmPassword = '';
+		errors = { username: '', email: '', password: '', confirmPassword: '' };
 	}
 </script>
 
 <div class="signup-container">
-	<!-- Left side - Image and tagline -->
 	<div class="signup-banner">
 		<div class="tagline-container">
 			<h2>Connect, Share, Flourish</h2>
@@ -135,7 +147,6 @@
 		</div>
 	</div>
 
-	<!-- Right side - Signup form -->
 	<div class="signup-form-container">
 		<div class="form-header">
 			<div class="logo">
@@ -158,39 +169,41 @@
 				</svg>
 			</div>
 			<h1>Verdant</h1>
-			<p>Create your account</p>
+			<p>{isLoginMode ? 'Log in to your account' : 'Create your account'}</p>
 		</div>
 
 		<form on:submit|preventDefault={handleSubmit} class="signup-form">
 			<div class="form-group">
-				<label for="name">Name</label>
+				<label for="username">Username</label>
 				<input
 					type="text"
-					id="name"
-					bind:value={name}
-					on:blur={() => validateField('name')}
-					class:error={errors.name}
-					placeholder="Enter your name (min. 6 characters)"
+					id="username"
+					bind:value={username}
+					on:blur={() => validateField('username')}
+					class:error={errors.username}
+					placeholder="Enter your username (min. 6 characters)"
 				/>
-				{#if errors.name}
-					<span class="error-message">{errors.name}</span>
+				{#if errors.username}
+					<span class="error-message">{errors.username}</span>
 				{/if}
 			</div>
 
-			<div class="form-group">
-				<label for="email">Email</label>
-				<input
-					type="email"
-					id="email"
-					bind:value={email}
-					on:blur={() => validateField('email')}
-					class:error={errors.email}
-					placeholder="Enter your email address"
-				/>
-				{#if errors.email}
-					<span class="error-message">{errors.email}</span>
-				{/if}
-			</div>
+			{#if !isLoginMode}
+				<div class="form-group">
+					<label for="email">Email</label>
+					<input
+						type="email"
+						id="email"
+						bind:value={email}
+						on:blur={() => validateField('email')}
+						class:error={errors.email}
+						placeholder="Enter your email address"
+					/>
+					{#if errors.email}
+						<span class="error-message">{errors.email}</span>
+					{/if}
+				</div>
+			{/if}
 
 			<div class="form-group">
 				<label for="password">Password</label>
@@ -200,12 +213,12 @@
 					bind:value={password}
 					on:blur={() => validateField('password')}
 					class:error={errors.password}
-					placeholder="Create a password"
+					placeholder={isLoginMode ? 'Enter your password' : 'Create a password'}
 				/>
 				{#if errors.password}
 					<span class="error-message">{errors.password}</span>
 				{/if}
-				{#if !errors.password && password}
+				{#if !isLoginMode && !errors.password && password}
 					<div class="password-requirements">
 						<div class="requirement" class:met={password.length >= 6}>
 							<span class="indicator"></span>Min. 6 characters
@@ -229,30 +242,39 @@
 				{/if}
 			</div>
 
-			<div class="form-group">
-				<label for="confirmPassword">Confirm Password</label>
-				<input
-					type="password"
-					id="confirmPassword"
-					bind:value={confirmPassword}
-					on:blur={() => validateField('confirmPassword')}
-					class:error={errors.confirmPassword}
-					placeholder="Confirm your password"
-				/>
-				{#if errors.confirmPassword}
-					<span class="error-message">{errors.confirmPassword}</span>
-				{/if}
-			</div>
+			{#if !isLoginMode}
+				<div class="form-group">
+					<label for="confirmPassword">Confirm Password</label>
+					<input
+						type="password"
+						id="confirmPassword"
+						bind:value={confirmPassword}
+						on:blur={() => validateField('confirmPassword')}
+						class:error={errors.confirmPassword}
+						placeholder="Confirm your password"
+					/>
+					{#if errors.confirmPassword}
+						<span class="error-message">{errors.confirmPassword}</span>
+					{/if}
+				</div>
+			{/if}
 
 			<button type="submit" class="signup-button" disabled={!formValid || isSubmitting}>
-				{isSubmitting ? 'Creating Account...' : 'Sign Up'}
+				{isSubmitting
+					? isLoginMode
+						? 'Logging In...'
+						: 'Creating Account...'
+					: isLoginMode
+						? 'Log In'
+						: 'Sign Up'}
 			</button>
 
-			<div class="login-link">
-				Already have an account? <a href="/login">Log in</a>
+			<div class="toggle-link">
+				{isLoginMode ? "Don't have an account?" : 'Already have an account?'}
+				<a href="#" on:click|preventDefault={toggleMode}>
+					{isLoginMode ? 'Sign Up now!' : 'Log in'}
+				</a>
 			</div>
-			<!-- Admin button to bypass signup -->
-			<button type="button" class="admin-button" on:click={adminAccess}> Admin Access </button>
 		</form>
 	</div>
 </div>
@@ -262,7 +284,7 @@
 		margin: 0;
 		padding: 0;
 		font-family:
-			'Inter',
+			'Figtree',
 			-apple-system,
 			BlinkMacSystemFont,
 			'Segoe UI',
@@ -315,6 +337,7 @@
 	}
 
 	.tagline-container h2 {
+		font-family: 'Outfit Variable', sans-serif;
 		font-size: 2.5rem;
 		font-weight: 700;
 		margin-bottom: 1rem;
@@ -322,6 +345,7 @@
 	}
 
 	.tagline-container p {
+		font-family: 'Outfit Variable', sans-serif;
 		font-size: 1.25rem;
 		line-height: 1.5;
 		opacity: 0.9;
@@ -350,6 +374,7 @@
 	}
 
 	.form-header h1 {
+		font-family: 'Outfit Variable', sans-serif;
 		font-size: 2rem;
 		font-weight: 700;
 		color: #10b981;
@@ -358,6 +383,7 @@
 
 	.form-header p {
 		color: #6b7280;
+		font-family: 'Figtree', sans-serif;
 		font-size: 1rem;
 		margin-top: 0.5rem;
 	}
@@ -374,6 +400,7 @@
 	label {
 		display: block;
 		margin-bottom: 0.5rem;
+		font-family: 'Figtree', sans-serif;
 		font-weight: 500;
 		color: #4b5563;
 	}
@@ -383,6 +410,7 @@
 		padding: 0.75rem 1rem;
 		border: 1px solid #d1d5db;
 		border-radius: 0.375rem;
+		font-family: 'Figtree', sans-serif;
 		font-size: 1rem;
 		transition:
 			border-color 0.2s,
@@ -406,6 +434,7 @@
 	.error-message {
 		display: block;
 		color: #ef4444;
+		font-family: 'Figtree', sans-serif;
 		font-size: 0.875rem;
 		margin-top: 0.5rem;
 	}
@@ -467,20 +496,20 @@
 		cursor: not-allowed;
 	}
 
-	.login-link {
+	.toggle-link {
 		text-align: center;
 		margin-top: 1.5rem;
 		font-size: 0.875rem;
 		color: #6b7280;
 	}
 
-	.login-link a {
+	.toggle-link a {
 		color: #10b981;
 		text-decoration: none;
 		font-weight: 500;
 	}
 
-	.login-link a:hover {
+	.toggle-link a:hover {
 		text-decoration: underline;
 	}
 
@@ -510,23 +539,5 @@
 			padding: 1.5rem;
 			flex: 1 0 auto;
 		}
-	}
-	/* Admin button styling */
-	.admin-button {
-		width: 100%;
-		padding: 0.75rem 1rem;
-		background-color: #e5e7eb;
-		color: #4b5563;
-		border: none;
-		border-radius: 0.375rem;
-		font-size: 0.875rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: background-color 0.2s;
-		margin-top: 1rem;
-	}
-
-	.admin-button:hover {
-		background-color: #d1d5db;
 	}
 </style>

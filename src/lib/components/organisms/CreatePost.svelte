@@ -109,6 +109,7 @@
 
 <style>
 	.create-post-container {
+		font-family: 'Figtree', sans-serif;
 		display: flex;
 		flex-direction: column;
 		gap: 1rem; /* Matches gap-4 */
@@ -165,14 +166,24 @@
 		margin-top: 0.5rem;
 	}
 
-	.image-upload-button {
-		background-color: transparent;
-		color: #333333; /* Soft black */
-		padding: 0.5rem;
+	:global(.image-upload-button) {
+		padding: 0.75rem 1rem; /* Matches original Button.svelte */
+		border-radius: 0.375rem; /* Matches original Button.svelte */
+		background-color: #a8d5ba; /* Pastel green */
+		color: #ffffff;
+		border: none;
+		font-family: 'Outfit Variable', sans-serif;
+		font-size: 1rem;
+		cursor: pointer;
+		transition: background-color 0.2s;
 	}
 
-	.image-upload-button:hover {
-		background-color: #f9fafb; /* Light gray hover */
+	:global(.image-upload-button:hover:not(:disabled)) {
+		background-color: #8bb89f; /* Slightly darker pastel green */
+	}
+
+	:global(.image-upload-button:disabled) {
+		background-color: #d1d5db; /* Gray */
 	}
 
 	.icon {
@@ -186,14 +197,23 @@
 		gap: 1rem; /* Matches gap-4 */
 	}
 
-	.submit-button {
-		background-color: #a8d5ba; /* Pastel green */
+	:global(.submit-button) {
+		padding: 0.75rem 1rem; /* Matches original Button.svelte */
+		border-radius: 0.375rem; /* Matches original Button.svelte */
+		background-color: #24b3a8; /* Greenish-blue pastel */
 		color: #ffffff;
-		border-radius: 9999px; /* Fully rounded */
-		padding: 0.75rem 1rem;
+		border: none;
+		font-family: 'Outfit Variable', sans-serif;
+		font-size: 1rem;
+		cursor: pointer;
+		transition: background-color 0.2s;
 	}
 
-	.submit-button:disabled {
-		background-color: #d1d5db; /* Gray from sign-in page */
+	:global(.submit-button:hover:not(:disabled)) {
+		background-color: #30d5c8; /* Slightly darker greenish-blue */
+	}
+
+	:global(.submit-button:disabled) {
+		background-color: #1d8d84; /* Gray */
 	}
 </style>
