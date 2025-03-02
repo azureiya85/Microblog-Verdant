@@ -39,7 +39,7 @@
 <div class="sidebar">
 	<!-- Top Section -->
 	<div>
-		<h1 class="title" on:click={goToLanding}>Verdant</h1>
+		<h1 class="title" onclick={goToLanding}>Verdant</h1>
 		<nav class="nav">
 			<a href="/timeline" class="nav-link">Timeline</a>
 			<a href="/timeline" class="nav-link">Notifications</a>

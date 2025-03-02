@@ -1,8 +1,8 @@
-<!-- src/lib/components/organisms/CreatePost.svelte -->
 <script lang="ts">
 	import Input from '../atoms/Input.svelte';
 	import Button from '../atoms/Button.svelte';
 	import CharacterCounter from '../atoms/CharacterCounter.svelte';
+	import { getUser } from '$lib/stores/auth.svelte.ts';
 
 	interface Post {
 		id: number;
@@ -12,7 +12,11 @@
 		timestamp: Date;
 	}
 
-	let { onSubmit = (post: Post, isEditing: boolean) => {}, onClose = () => {} } = $props();
+	let {
+		onSubmit = (post: Post, isEditing: boolean) => {},
+		onClose = () => {},
+		currentUser = null
+	} = $props();
 
 	let content = $state<string>('');
 	let image = $state<string | null>(null);
@@ -20,12 +24,16 @@
 	let isEditing = $state<boolean>(false);
 	let postId = $state<number | null>(null);
 
-	let currentUser = $state({
-		id: 'current-user',
-		name: 'Current User',
-		username: 'currentuser',
-		avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
-	});
+	// Use the passed currentUser or fall back to the authenticated user
+	let user = $derived(
+		currentUser ||
+			getUser() || {
+				id: 'current-user',
+				name: 'Current User',
+				username: 'currentuser',
+				avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
+			}
+	);
 
 	let characterCount = $derived(content.length);
 	let isValid = $derived(content.trim().length > 0 && characterCount <= 350);
@@ -49,7 +57,12 @@
 			id: isEditing && postId !== null ? postId : Date.now(),
 			content,
 			image,
-			author: currentUser,
+			author: {
+				id: user.id,
+				name: user.name || user.username || 'User',
+				username: user.username || 'user',
+				avatar: user.avatar || 'https://randomuser.me/api/portraits/men/32.jpg'
+			},
 			timestamp: new Date()
 		};
 
